@@ -16,19 +16,19 @@ create table if not exists songplays (songplay_id serial primary key, start_time
 """)
 
 user_table_create = ("""
-create table if not exists users (user_id int, first_name varchar, last_name varchar, gender varchar, level varchar)
+create table if not exists users (user_id int primary key, first_name varchar, last_name varchar, gender varchar, level varchar)
 """)
 
 song_table_create = ("""
-create table if not exists songs (song_id varchar, title text, artist_id varchar, year int, duration numeric)
+create table if not exists songs (song_id varchar primary key, title text, artist_id varchar, year int, duration numeric)
 """)
 
 artist_table_create = ("""
-create table if not exists artists (artist_id varchar, name varchar, location varchar, latitude numeric, longitude numeric)
+create table if not exists artists (artist_id varchar primary key, name varchar, location varchar, latitude numeric, longitude numeric)
 """)
 
 time_table_create = ("""
-create table if not exists time (start_time timestamp, hour int, day int, week int, month int, year int, weekday int)
+create table if not exists time (start_time timestamp primary key, hour int, day int, week int, month int, year int, weekday int)
 """)
 
 # INSERT RECORDS
@@ -40,23 +40,23 @@ insert into songplays (start_time, user_id, level, song_id, artist_id, session_i
 
 user_table_insert = ("""
 insert into users (user_id, first_name, last_name, gender, level) \
-    values (%s, %s, %s, %s, %s)
+    values (%s, %s, %s, %s, %s) on conflict (user_id) do nothing
 """)
 
 song_table_insert = ("""
 insert into songs (song_id, title, artist_id, year, duration) \
-    values (%s, %s, %s, %s, %s)
+    values (%s, %s, %s, %s, %s) 
 """)
 
 artist_table_insert = ("""
 insert into artists (artist_id, name, location, latitude, longitude) \
-    values (%s, %s, %s, %s, %s)
+    values (%s, %s, %s, %s, %s) on conflict (artist_id) do nothing
 """)
 
 
 time_table_insert = ("""
 insert into time (start_time, hour, day, week, month, year, weekday) \
-    values (%s, %s, %s, %s, %s, %s, %s)
+    values (%s, %s, %s, %s, %s, %s, %s) on conflict (start_time) do nothing
 """)
 
 # FIND SONGS
