@@ -4,7 +4,9 @@ import psycopg2
 import pandas as pd
 from sql_queries import *
 
-"""
+
+def process_song_file(cur, filepath):
+    """
     This procedure processes a song file whose filepath has been provided as an arugment.
     It extracts the song information in order to store it into the songs table.
     Then it extracts the artist information in order to store it into the artists table.
@@ -12,8 +14,8 @@ from sql_queries import *
     INPUTS: 
     * cur the cursor variable
     * filepath the file path to the song file
-"""
-def process_song_file(cur, filepath):
+    """
+    
     # open song file
     df = pd.read_json(filepath, lines=True)
 
@@ -36,7 +38,8 @@ def process_song_file(cur, filepath):
         print(e)
 
 
-"""
+def process_log_file(cur, filepath):
+    """
     This procedure processes a log file whose filepath has been provided as an arugment.
     It extracts the time information in order to store it into the time table.
     Then it extracts the user information in order to store it into the user table.
@@ -45,8 +48,8 @@ def process_song_file(cur, filepath):
     INPUTS: 
     * cur the cursor variable
     * filepath the file path to the log file
-"""
-def process_log_file(cur, filepath):
+    """
+    
     # open log file
     df = pd.read_json(filepath, lines=True)
 
@@ -111,7 +114,8 @@ def process_log_file(cur, filepath):
         cur.execute(songplay_table_insert, songplay_data)
 
 
-"""
+def process_data(cur, conn, filepath, func):
+    """
     This procedure extract the absolute filepath for each file provided under the provided filepath.
     Call the function to import the file into the database.
 
@@ -120,8 +124,8 @@ def process_log_file(cur, filepath):
     * conn the connection variable to the database
     * filepath the file path to the song file
     * func used function
-"""
-def process_data(cur, conn, filepath, func):
+    """
+    
     # get all files matching extension from directory
     all_files = []
     for root, dirs, files in os.walk(filepath):
@@ -140,10 +144,11 @@ def process_data(cur, conn, filepath, func):
         print('{}/{} files processed.'.format(i, num_files))
 
 
-"""
-    This main procedure provide the connection to the database and call various functions
-"""
 def main():
+    """
+    This main procedure provide the connection to the database and call various functions
+    """
+    
     conn = psycopg2.connect("host=127.0.0.1 dbname=sparkifydb user=student password=student")
     cur = conn.cursor()
 
@@ -153,8 +158,9 @@ def main():
     conn.close()
 
 
-"""
-    Call the main function
-"""
 if __name__ == "__main__":
+    """
+    Call the main function
+    """
+    
     main()
