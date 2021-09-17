@@ -15,5 +15,5 @@
     - clustering columns: iteminsession
 - Mission Three: This mission focuses on the song_title, so I have to use song to partition
     - partition_key : song
-    - clustering columns : session_id, iteminsession
+    - clustering columns : user_id
 
