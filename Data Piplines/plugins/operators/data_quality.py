@@ -9,32 +9,40 @@ class DataQualityOperator(BaseOperator):
     @apply_defaults
     def __init__(self,
                  redshift_conn_id="",
-                 tables=[],
+                 dq_checks=[],
                  *args, **kwargs):
 
         super(DataQualityOperator, self).__init__(*args, **kwargs)
         self.redshift_conn_id = redshift_conn_id
-        self.tables = tables
+        self.dq_checks = dq_checks
 
 
     def execute(self, context):
         """
         1. connect postgre
-        2. Determine the number of rows in each table
+        2. check the expected result of each table
         """
         # connect redshift
         redshift = PostgresHook(postgres_conn_id=self.redshift_conn_id)
+        error_count = 0
+        failing_tests = []
 
-        # Clearing data
-        self.log.info("Clearing data from destination Redshift table")
+        self.log.info('Starting to Data Quality checks %s')
 
-        for table in self.tables:
-            # check data quality on every table   
-            self.log.info(f"Starting data quality validation on table : {table}")
-            records = redshift.get_records(f"select count(1) from {table};")
+        # check the expected result of each table
+        for check in self.dq_checks:
+            sql = check.get('check_sql')
+            exp_result = check.get('expected_result')
 
-            # Determine the number of rows in each table
-            if len(records) < 1 or len(records[0]) < 1 or records[0][0] < 1:
-                self.log.error(f"Data Quality validation failed for table : {table}.")
-                raise ValueError(f"Data Quality validation failed for table : {table}")
-            self.log.info(f"Data Quality Validation Passed on table : {table}!!!") 
+            records = redshift.get_records(sql)[0]
+
+            if exp_result != records[0]:
+                error_count += 1
+                failing_tests.append(sql)
+
+        if error_count > 0:
+            self.log.info('Tests failed')
+            self.log.info(failing_tests)
+            raise ValueError('Data quality check failed')
+
+        self.log.info('Data Quality checks passed!')

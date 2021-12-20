@@ -15,8 +15,13 @@ from airflow.operators import PostgresOperator
 # dag configuration
 default_args = {
     'owner': 'udacity',
-    'start_date': datetime(2021, 12, 14),
-    'retries': 1,
+    'depends_on_past': False,
+    'start_date': datetime(2021, 12, 19),
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 3,
+    'catchup': False,
+    'retry_delay': timedelta(minutes=5)
 }
 
 dag = DAG('udac_example_dag',
@@ -70,7 +75,8 @@ load_user_dimension_table = LoadDimensionOperator(
     dag=dag,
     redshift_conn_id="redshift",
     table="users",
-    insert_statement=SqlQueries.user_table_insert
+    insert_statement=SqlQueries.user_table_insert,
+    mode='append_only'
 )
 
 load_song_dimension_table = LoadDimensionOperator(
@@ -78,7 +84,8 @@ load_song_dimension_table = LoadDimensionOperator(
     dag=dag,
     redshift_conn_id="redshift",
     table="songs",
-    insert_statement=SqlQueries.song_table_insert
+    insert_statement=SqlQueries.song_table_insert,
+    mode='append_only'
 )
 
 load_artist_dimension_table = LoadDimensionOperator(
@@ -86,7 +93,8 @@ load_artist_dimension_table = LoadDimensionOperator(
     dag=dag,
     redshift_conn_id="redshift",
     table="artists",
-    insert_statement=SqlQueries.artist_table_insert
+    insert_statement=SqlQueries.artist_table_insert,
+    mode='append_only'
 )
 
 load_time_dimension_table = LoadDimensionOperator(
@@ -94,14 +102,18 @@ load_time_dimension_table = LoadDimensionOperator(
     dag=dag,
     redshift_conn_id="redshift",
     table="time",
-    insert_statement=SqlQueries.time_table_insert
+    insert_statement=SqlQueries.time_table_insert,
+    mode='append_only'
 )
 
 run_quality_checks = DataQualityOperator(
     task_id='Run_data_quality_checks',
     dag=dag,
     redshift_conn_id="redshift",
-    tables=['songplays', 'users', 'songs', 'artists', 'time']
+    dq_checks=[
+        {'check_sql': "SELECT COUNT(*) FROM users WHERE userid is null", 'expected_result': 0},
+        {'check_sql': "SELECT COUNT(*) FROM songs WHERE songid is null", 'expected_result': 0}
+    ]
 )
 
 end_operator = DummyOperator(task_id='Stop_execution',  dag=dag)
